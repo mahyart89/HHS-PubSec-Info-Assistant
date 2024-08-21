@@ -1,5 +1,13 @@
 locals {
-  tags            = { ProjectName = "Information Assistant", BuildNumber = var.buildNumber }
+  tags            = { 
+    ProjectName                   = "HHS ORC Information Assistant",
+    BuildNumber                   = var.buildNumber,
+    Environment                   = "Development",
+    AccountingUnit                = "HS260110",
+    BusinessUnit                  = "HHS Applications",
+    WorkloadOwnerEmail            = "WorkloadOwnerEmail",
+    WorkloadTechnicalContactEmail = "mahyar.tehrani@jfs.ohio.gov"
+  } 
   azure_roles     = jsondecode(file("${path.module}/azure_roles.json"))
   selected_roles  = ["CognitiveServicesOpenAIUser", "StorageBlobDataReader", "StorageBlobDataContributor", "SearchIndexDataReader", "SearchIndexDataContributor"]
 }
@@ -15,7 +23,7 @@ resource "random_string" "random" {
 
 // Organize resources in a resource group
 resource "azurerm_resource_group" "rg" {
-  name     = var.resourceGroupName != "" ? var.resourceGroupName : "infoasst-${var.environmentName}"
+  name     = var.resourceGroupName != "" ? var.resourceGroupName : "rg-HHS-ORCAssistant-App-Dev-EastUS-001"
   location = var.location
   tags     = local.tags
 }
@@ -38,8 +46,8 @@ module "entraObjects" {
 module "logging" {
   source = "./core/logging/loganalytics"
 
-  logAnalyticsName        = var.logAnalyticsName != "" ? var.logAnalyticsName : "infoasst-la-${random_string.random.result}"
-  applicationInsightsName = var.applicationInsightsName != "" ? var.applicationInsightsName : "infoasst-ai-${random_string.random.result}"
+  logAnalyticsName        = var.logAnalyticsName != "" ? var.logAnalyticsName : "log-HHS-ORCAssistant-Dev-EastUS-${random_string.random.result}"
+  applicationInsightsName = var.applicationInsightsName != "" ? var.applicationInsightsName : "appi-HHS-ORCAssistant-Dev-EastUS-${random_string.random.result}"
   location                = var.location
   tags                    = local.tags
   skuName                 = "PerGB2018"
@@ -48,7 +56,7 @@ module "logging" {
 
 module "storage" {
   source                = "./core/storage"
-  name                  = var.storageAccountName != "" ? var.storageAccountName : "infoasststore${random_string.random.result}"
+  name                  = var.storageAccountName != "" ? var.storageAccountName : "sahhsorcdeveus${random_string.random.result}"
   location              = var.location
   tags                  = local.tags
   accessTier            = "Hot"
@@ -68,8 +76,8 @@ module "storage" {
 
 module "enrichmentApp" {
   source                                    = "./core/host/enrichmentapp"
-  name                                      = var.enrichmentServiceName != "" ? var.enrichmentServiceName : "infoasst-enrichmentweb-${random_string.random.result}"
-  plan_name                                 = var.enrichmentAppServicePlanName != "" ? var.enrichmentAppServicePlanName : "infoasst-enrichmentasp-${random_string.random.result}"
+  name                                      = var.enrichmentServiceName != "" ? var.enrichmentServiceName : "app-HHS-ORCAssistant-Enrichment-Dev-EastUS-${random_string.random.result}"
+  plan_name                                 = var.enrichmentAppServicePlanName != "" ? var.enrichmentAppServicePlanName : "asp-HHS-ORCAssistant-Enrichment-Dev-EastUS-${random_string.random.result}"
   location                                  = var.location 
   tags                                      = local.tags
   sku = {
@@ -119,8 +127,8 @@ module "enrichmentApp" {
 # // The application frontend
 module "backend" {
   source                              = "./core/host/webapp"
-  name                                = var.backendServiceName != "" ? var.backendServiceName : "infoasst-web-${random_string.random.result}"
-  plan_name                           = var.appServicePlanName != "" ? var.appServicePlanName : "infoasst-asp-${random_string.random.result}"
+  name                                = var.backendServiceName != "" ? var.backendServiceName : "app-HHS-ORCAssistant-Web-Dev-EastUS-${random_string.random.result}"
+  plan_name                           = var.appServicePlanName != "" ? var.appServicePlanName : "asp-HHS-ORCAssistant-Web-Dev-EastUS-${random_string.random.result}"
   sku = {
     tier                              = var.appServiceSkuTier
     size                              = var.appServiceSkuSize
@@ -192,7 +200,7 @@ module "backend" {
 
 module "openaiServices" {
   source = "./core/ai/openaiservices"
-  name     = var.openAIServiceName != "" ? var.openAIServiceName : "infoasst-aoai-${random_string.random.result}"
+  name     = var.openAIServiceName != "" ? var.openAIServiceName : "oai-HHS-ORCAssistant-Dev-EastUS-${random_string.random.result}"
   location = var.location
   tags     = local.tags
   resourceGroupName = azurerm_resource_group.rg.name
@@ -232,10 +240,10 @@ module "openaiServices" {
 module "formrecognizer" {
   source = "./core/ai/docintelligence"
 
-  name     = "infoasst-fr-${random_string.random.result}"
+  name     = "di-HHS-ORCAssistant-Dev-EastUS-${random_string.random.result}"
   location = var.location
   tags     = local.tags
-  customSubDomainName = "infoasst-fr-${random_string.random.result}"
+  customSubDomainName = "di-HHS-ORCAssistant-Dev-EastUS-${random_string.random.result}"
   resourceGroupName = azurerm_resource_group.rg.name
   keyVaultId = module.kvModule.keyVaultId 
   depends_on = [
@@ -246,7 +254,7 @@ module "formrecognizer" {
 module "cognitiveServices" {
   source = "./core/ai/cogServices"
 
-  name     = "infoasst-enrichment-cog-${random_string.random.result}"
+  name     = "ais-HHS-ORCAssistant-Dev-EastUS-${random_string.random.result}"
   location = var.location 
   tags     = local.tags
   keyVaultId = module.kvModule.keyVaultId 
@@ -259,7 +267,7 @@ module "cognitiveServices" {
 module "searchServices" {
   source = "./core/search"
 
-  name     = var.searchServicesName != "" ? var.searchServicesName : "infoasst-search-${random_string.random.result}"
+  name     = var.searchServicesName != "" ? var.searchServicesName : "srch-HHS-ORCAssistant-Dev-EastUS-${random_string.random.result}"
   location = var.location
   tags     = local.tags
   # aad_auth_failure_mode = "http401WithBearerChallenge"
@@ -277,7 +285,7 @@ module "searchServices" {
 module "cosmosdb" {
   source = "./core/db"
 
-  name                = "infoasst-cosmos-${random_string.random.result}"
+  name                = "cosmos-HHS-ORCAssistant-Dev-EastUS-${random_string.random.result}"
   location            = var.location
   tags                = local.tags
   logDatabaseName   = "statusdb"
@@ -295,12 +303,12 @@ module "cosmosdb" {
 module "functions" { 
   source = "./core/host/functions"
 
-  name                                  = var.functionsAppName != "" ? var.functionsAppName : "infoasst-func-${random_string.random.result}"
+  name                                  = var.functionsAppName != "" ? var.functionsAppName : "func-HHS-ORCAssistant-Dev-EastUS-${random_string.random.result}"
   location                              = var.location
   tags                                  = local.tags
   keyVaultUri                           = module.kvModule.keyVaultUri
   keyVaultName                          = module.kvModule.keyVaultName 
-  plan_name                             = var.appServicePlanName != "" ? var.appServicePlanName : "infoasst-func-asp-${random_string.random.result}"
+  plan_name                             = var.appServicePlanName != "" ? var.appServicePlanName : "asp-HHS-ORCAssistant-Func-Dev-EastUS-${random_string.random.result}"
   sku                                   = {
     size                                = var.functionsAppSkuSize
     tier                                = var.functionsAppSkuTier
@@ -480,14 +488,14 @@ module "azMonitor" {
   source            = "./core/logging/monitor"
   logAnalyticsName  = module.logging.logAnalyticsName
   location          = var.location
-  logWorkbookName   = "infoasst-lw-${random_string.random.result}"
+  logWorkbookName   = "HHS-ORCAssistant-Dev-EastUS-${random_string.random.result}"
   resourceGroupName = azurerm_resource_group.rg.name 
   componentResource = "/subscriptions/${var.subscriptionId}/resourceGroups/${azurerm_resource_group.rg.name}/providers/Microsoft.OperationalInsights/workspaces/${module.logging.logAnalyticsName}"
 }
 
 module "kvModule" {
   source            = "./core/security/keyvault" 
-  name              = "infoasst-kv-${random_string.random.result}"
+  name              = "kv-HHS-ORCAssistant-Dev-EastUS-${random_string.random.result}"
   location          = var.location
   kvAccessObjectId  = data.azurerm_client_config.current.object_id 
   spClientSecret    = module.entraObjects.azure_ad_mgmt_app_secret 
@@ -499,7 +507,7 @@ module "kvModule" {
 
 module "bingSearch" {
   source                        = "./core/ai/bingSearch"
-  name                          = "infoasst-bing-${random_string.random.result}"
+  name                          = "bing-HHS-ORCAssistant-Dev-EastUS-${random_string.random.result}"
   resourceGroupName             = azurerm_resource_group.rg.name
   tags                          = local.tags
   sku                           = "S1" //supported SKUs can be found at https://www.microsoft.com/en-us/bing/apis/pricing
