@@ -86,7 +86,8 @@ elif [[ "${WORKSPACE}" =~ [[:upper:]] ]]; then
 fi
 
 # Set the name of the resource group
-export TF_VAR_resource_group_name="infoasst-$WORKSPACE"
+# export TF_VAR_resource_group_name="infoasst-$WORKSPACE"
+export TF_VAR_resource_group_name="rg-HHS-ORCAssistant-App-Dev-EastUS-001"
 
 # The default key that is used in the remote state
 export TF_BACKEND_STATE_KEY="shared.infoasst.tfstate"

@@ -267,7 +267,7 @@ module "cognitiveServices" {
 module "searchServices" {
   source = "./core/search"
 
-  name     = var.searchServicesName != "" ? var.searchServicesName : "srch-HHS-ORCAssistant-Dev-EastUS-${random_string.random.result}"
+  name     = var.searchServicesName != "" ? var.searchServicesName : "srch-hhs-orcassistant-dev-eastus-${random_string.random.result}"
   location = var.location
   tags     = local.tags
   # aad_auth_failure_mode = "http401WithBearerChallenge"
@@ -495,7 +495,7 @@ module "azMonitor" {
 
 module "kvModule" {
   source            = "./core/security/keyvault" 
-  name              = "kv-HHS-ORCAssistant-Dev-EastUS-${random_string.random.result}"
+  name              = "kvhhsorcdeveus${random_string.random.result}"
   location          = var.location
   kvAccessObjectId  = data.azurerm_client_config.current.object_id 
   spClientSecret    = module.entraObjects.azure_ad_mgmt_app_secret 
