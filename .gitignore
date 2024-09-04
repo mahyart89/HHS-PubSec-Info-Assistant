@@ -386,3 +386,7 @@ packages-microsoft*
 
 # docker container build artifacts
 app/enrichment/shared_code
+
+# Visual Studios Code
+.vscode
+.vscode/*

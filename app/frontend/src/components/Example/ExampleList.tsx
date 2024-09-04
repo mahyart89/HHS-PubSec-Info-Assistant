@@ -13,7 +13,7 @@ export type ExampleModel = {
 const EXAMPLES: ExampleModel[] = [
     { text: "What is the definition of a household, according to Ohio Revised Code?", value: "What is the definition of a household, according to Ohio Revised Code?" },
     { text: "Who is eligible for SNAP Benefits?", value: "Who is eligible for SNAP Benefits?" },
-    { text: "What are some flavors of Breyers?", value: "What are some flavors of Breyers?" }
+    { text: "What are some of the steps to apply for snap?", value: "What are some of the steps to apply for snap?" }
 ];
 
 interface Props {
